@@ -96,8 +96,8 @@ def dna_alignment():
 
 
 def workflow():
-    d = Drawing("The analysis stays connected to its data", "NCBI supplies sequence and annotation records. BioseqDB stores sequence and metadata and aligns the intervals. SQLAlchemy executes SQL; Plotly turns returned summaries and matches into charts.", 535)
-    boxes = [(40,100,340,130,"cyan","NCBI","Accession + assembly\nSequence + annotation"),
+    d = Drawing("The analysis stays connected to its data", "NCBI assembly metadata and sequence records are queried through SQL. BioseqDB stores the sequence and aligns the intervals. SQLAlchemy executes SQL; Plotly draws the returned summaries and matches. Python downloads the matching NCBI GFF annotations separately.", 535)
+    boxes = [(40,100,340,130,"cyan","NCBI","Assembly metadata\nSequence records"),
              (480,100,340,130,"mint","PostgreSQL + BioseqDB","Import and retain provenance\nAlign with SQL"),
              (40,315,340,130,"purple","SQLAlchemy","Execute parameterized queries\nReceive measured result rows"),
              (480,315,340,130,"orange","Plotly","Composition and alignment charts\nInteractive HTML + SVG")]
@@ -112,6 +112,7 @@ def workflow():
     d.line(210,282,210,303,arrow=True)
     d.text(430,271,"Search and summaries run in the database",size=17,anchor="middle",color="muted")
     d.line(392,380,463,380,arrow=True)
+    d.text(30,480,"Matching NCBI GFF annotations are downloaded separately by Python.",size=17,color="muted")
     d.note("Python sends queries and draws their results. No external aligner is invoked.")
     return d.finish()
 

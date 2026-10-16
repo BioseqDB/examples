@@ -124,6 +124,7 @@ def _layout(fig: go.Figure, title: str, theme: str = "dark", *, height: int = 52
         margin={"t": 116 if subtitle else 88, "b": 80, "l": left, "r": 32},
         legend={"orientation": "h", "y": -0.2, "x": 0, "font": {"size": 15}},
         hoverlabel={"bgcolor": p["panel"], "font": {"color": p["text"], "size": 14}},
+        modebar={"color": p["muted"], "activecolor": p["text"], "bgcolor": p["panel"]},
         hovermode="closest",
     )
     fig.update_xaxes(gridcolor=p["grid"], zeroline=False, linecolor=p["grid"],
@@ -518,19 +519,51 @@ function apply(theme) {
   mode = theme; document.documentElement.dataset.theme = theme;
   button.textContent = theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
   button.setAttribute('aria-pressed', String(theme === 'light'));
-  Plotly.react(graph, plots[theme].data, {...plots[theme].layout, autosize: true, width: null}, __CONFIG__);
+  const layout = structuredClone(plots[theme].layout);
+  layout.autosize = true; layout.width = null; layout.title = {text: ''};
+  layout.margin.t = 70;
+  if (graph.clientWidth < 666) {
+    layout.font.size = 12;
+    layout.margin.l = Math.min(layout.margin.l, 170);
+    layout.margin.r = 18;
+    layout.legend.font.size = 11;
+    for (const key of Object.keys(layout)) {
+      if (/^[xy]axis[0-9]*$/.test(key)) {
+        layout[key].tickfont = {...layout[key].tickfont, size: 11};
+        if (layout[key].title) layout[key].title.font = {...layout[key].title.font, size: 12};
+        layout[key].nticks = 5;
+      }
+    }
+    for (const annotation of layout.annotations || []) {
+      annotation.font = {...annotation.font, size: 11};
+    }
+  }
+  Plotly.react(graph, plots[theme].data, layout, __CONFIG__);
 }
 button.addEventListener('click', () => { manual = true; apply(mode === 'light' ? 'dark' : 'light'); });
 preference.addEventListener('change', () => { if (!manual) apply(preference.matches ? 'light' : 'dark'); });
+let resizeFrame;
+window.addEventListener('resize', () => {
+  cancelAnimationFrame(resizeFrame);
+  resizeFrame = requestAnimationFrame(() => apply(mode));
+});
 apply(mode);
 """.replace("__THEMES__", themes).replace("__CONFIG__", json.dumps(config))
-    pio.write_html(dark, str(path), include_plotlyjs="directory", full_html=True,
-                   post_script=post, config=config, auto_open=False)
+    interactive = go.Figure(dark)
+    interactive.update_layout(width=None, autosize=True, title={"text": ""})
+    pio.write_html(interactive, str(path), include_plotlyjs="directory", full_html=True,
+                   post_script=post, config=config, auto_open=False, default_width="100%")
     source = path.read_text()
+    title_parts = dark.layout.title.text.split("<br>", 1)
+    heading = "<header><h1>" + title_parts[0] + "</h1>"
+    if len(title_parts) == 2:
+        heading += "<p>" + title_parts[1].replace("<sup>", "").replace("</sup>", "") + "</p>"
+    heading += "</header>"
     style = """<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>html{color-scheme:dark;background:#071320;color:#eef4f9}html[data-theme=light]{color-scheme:light;background:#f5f8fc;color:#173247}body{margin:0;padding:18px;font-family:Arial,sans-serif}.theme-toggle{display:block;margin:0 0 10px auto;padding:9px 14px;background:transparent;color:inherit;border:1px solid currentColor;border-radius:7px;cursor:pointer}.plotly-graph-div{width:100%!important;min-height:420px}@media(max-width:568px){body{padding:6px}.plotly-graph-div{min-height:460px}}</style>
+<style>*{box-sizing:border-box}html{color-scheme:dark;background:#071320;color:#eef4f9}html[data-theme=light]{color-scheme:light;background:#f5f8fc;color:#173247}body{margin:0 auto;max-width:1600px;padding:18px;font-family:Arial,sans-serif}header{padding:12px 20px 0}h1{font-size:26px;margin:8px 0;line-height:1.25}header p{font-size:15px;line-height:1.5;margin:8px 0}.theme-toggle{display:block;margin:0 0 10px auto;padding:9px 14px;background:transparent;color:inherit;border:1px solid currentColor;border-radius:7px;cursor:pointer}.plotly-graph-div{width:100%!important;min-height:420px}@media(max-width:666px){h1{font-size:22px}header{padding:8px 10px 0}}@media(max-width:568px){body{padding:6px}h1{font-size:20px}.plotly-graph-div{min-height:460px}}</style>
 """
     source = source.replace("<head>", "<head>" + style, 1)
+    source = source.replace("<body>", "<body>" + heading, 1)
     path.write_text(source)
 
 
