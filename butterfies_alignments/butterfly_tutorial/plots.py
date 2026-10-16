@@ -562,7 +562,9 @@ apply(mode);
     style = """<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>*{box-sizing:border-box}html{color-scheme:dark;background:#071320;color:#eef4f9}html[data-theme=light]{color-scheme:light;background:#f5f8fc;color:#173247}body{margin:0 auto;max-width:1600px;padding:18px;font-family:Arial,sans-serif}header{padding:12px 20px 0}h1{font-size:26px;margin:8px 0;line-height:1.25}header p{font-size:15px;line-height:1.5;margin:8px 0}.theme-toggle{display:block;margin:0 0 10px auto;padding:9px 14px;background:transparent;color:inherit;border:1px solid currentColor;border-radius:7px;cursor:pointer}.plotly-graph-div{width:100%!important;min-height:420px}@media(max-width:666px){h1{font-size:22px}header{padding:8px 10px 0}}@media(max-width:568px){body{padding:6px}h1{font-size:20px}.plotly-graph-div{min-height:460px}}</style>
 """
-    source = source.replace("<head>", "<head>" + style, 1)
+    source = source.replace("<html>", '<html lang="en">', 1)
+    source = source.replace("<head>", "<head><title>" + html.escape(title_parts[0])
+                            + " | BioseqDB</title>" + style, 1)
     source = source.replace("<body>", "<body>" + heading, 1)
     path.write_text(source)
 

@@ -1,0 +1,60 @@
+{
+  "validated_at": "2026-10-16T15:30:38.822444+00:00",
+  "scope": "Fresh NCBI SQL imports, analysis, Plotly exports and complete Jupyter notebook",
+  "source_patch": {
+    "base_revision": "f7a34a198e42ffa345917eac9f02e41116d34fe7",
+    "patch_sha256": "b8f3eaf7aa462bc0dfc8688bee4015b4ea55304feabc2967553e7b1fa67d8965",
+    "files": [
+      "bioseq/backend/pg/external/relation.cppm",
+      "bioseq/backend/pg/external/scan.cppm",
+      "bioseq/backend/pg/external/sql_catalog.cppm",
+      "bioseq/external/providers/ncbi.cppm",
+      "bioseq/external/tests/provider/run_live_test.cpp"
+    ],
+    "applies_cleanly": true,
+    "matches_working_sources": true
+  },
+  "fresh_sql_imports": true,
+  "sequence_checksums_verified": true,
+  "notebook_code_cells_executed": 9,
+  "committed_notebook_has_no_outputs": true,
+  "regression_tests_passed": 7,
+  "static_svg_exports": 22,
+  "interactive_html_exports": 11,
+  "alignment_rows": 661,
+  "plotted_rows": 355,
+  "gc_windows": 200,
+  "cigar_validation": {
+    "checked_alignments": 661,
+    "failures": 0
+  },
+  "review_rounds": [
+    {
+      "round": 1,
+      "focus": "Independent NCBI records, annotations, CIGAR replay and biological interpretation",
+      "result": "accepted after atomic-import and annotation checks were added"
+    },
+    {
+      "round": 2,
+      "focus": "Teaching sequence, terminology, examples and figure narrative",
+      "result": "accepted after setup and caption clarifications"
+    },
+    {
+      "round": 3,
+      "focus": "Formatting, source links, all 19 illustrations in light and dark palettes",
+      "result": "accepted after workflow diagram and hover wording corrections"
+    },
+    {
+      "round": 4,
+      "focus": "SQL and Python correctness, fresh imports, notebook execution and reproducibility",
+      "result": "accepted after range deduplication fix and complete live execution"
+    },
+    {
+      "round": 5,
+      "focus": "Human language, consistent narrative and final scientific coherence",
+      "result": "accepted after transcript definition and setup-order clarification"
+    }
+  ],
+  "final_editorial_acceptance": "Reviewed and accepted after the five rounds and live execution",
+  "data_policy": "Full input sequences and GFF downloads are not committed; sources.json pins downloadable NCBI inputs."
+}
