@@ -1,0 +1,13 @@
+% Fields in sql/02_schema.sql. Requires \usepackage{booktabs,tabularx}.
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+Field & Meaning \\
+\midrule
+\texttt{key} & Short tutorial label: erato or melpomene. \\
+\texttt{accession} & Versioned NCBI sequence accession. \\
+\texttt{organism} & Full scientific name, including subspecies. \\
+\texttt{assembly} & Assembly accession used to select annotations. \\
+\texttt{start0}, \texttt{end0} & Zero-based, half-open interval on the source record. \\
+\texttt{seq} & DNA stored as \texttt{bioseq.seq('dna5', 64)}; preserves A/C/G/T/N. \\
+\bottomrule
+\end{tabularx}

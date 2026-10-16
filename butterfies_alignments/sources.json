@@ -1,0 +1,132 @@
+{
+  "retrieval_date": "2026-10-16",
+  "coordinate_system": "All start0/end0 coordinates are absolute, 0-based, half-open on the named accession. EFetch uses start0+1 and end0. Returned sequence windows retain the deposited forward strand.",
+  "records": [
+    {
+      "key": "erato",
+      "organism": "Heliconius erato demophoon",
+      "taxid": 1608923,
+      "assembly": "GCA_056362945.2",
+      "accession": "JBTWUK020000023.1",
+      "start0": 3700000,
+      "end0": 4700000,
+      "sequence_sha256_uppercase": "f1dc3c37ed22ebbba8059a5d3dfe7143c7c9b561f22263c8bfe1d206c14ab04e",
+      "gff_url": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/056/362/945/GCA_056362945.2_Hedem_Duke_1.1/GCA_056362945.2_Hedem_Duke_1.1_genomic.gff.gz",
+      "gff_sha256": "737632ec6240529f3dd9c5a1db3433d33d295857de9a074148b7e2927896697b",
+      "assembly_report_url": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/056/362/945/GCA_056362945.2_Hedem_Duke_1.1/GCA_056362945.2_Hedem_Duke_1.1_assembly_report.txt",
+      "optix_gene": {
+        "id": "gene-AC2CFC_001707",
+        "name": "AC2CFC_001707",
+        "start0": 4186504,
+        "end0": 4205176,
+        "strand": "-",
+        "description": "homeobox protein SIX6"
+      },
+      "optix_cds": [
+        {
+          "start0": 4204372,
+          "end0": 4205176,
+          "strand": "-",
+          "protein_id": "KAO2059516.1"
+        }
+      ],
+      "optix_exons": [
+        {
+          "start0": 4204183,
+          "end0": 4205176,
+          "strand": "-"
+        },
+        {
+          "start0": 4186504,
+          "end0": 4186651,
+          "strand": "-"
+        }
+      ],
+      "annotation_note": "The submitted NCBI annotation calls AC2CFC_001707 homeobox protein SIX6. Its 804-base coding sequence differs at 26 positions from the annotated H. melpomene Optix coding sequence and its 267-residue protein differs at one position; this supports identifying it as the optix homolog, rather than claiming the GFF names it Optix.",
+      "sequence_record_url": "https://www.ncbi.nlm.nih.gov/nuccore/JBTWUK020000023.1",
+      "assembly_url": "https://www.ncbi.nlm.nih.gov/datasets/genome/GCA_056362945.2/",
+      "source_sequence_name": "ntLink_18",
+      "source_sequence_role": "unplaced-scaffold",
+      "source_sequence_length_bp": 5549739
+    },
+    {
+      "key": "melpomene",
+      "organism": "Heliconius melpomene rosina",
+      "taxid": 171916,
+      "assembly": "GCF_056956725.1",
+      "accession": "NC_140406.1",
+      "start0": 600000,
+      "end0": 1600000,
+      "sequence_sha256_uppercase": "f0ba15629166356e673c0cd7e3bfc2b5ee18d9ae80182c96d65522086d1368a7",
+      "gff_url": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/056/956/725/GCF_056956725.1_ASM5695672v1/GCF_056956725.1_ASM5695672v1_genomic.gff.gz",
+      "gff_sha256": "1060a4acd70e5e8b5f52828ee924f3ec9475ec6a4d2a119f1e1283c3265f8b04",
+      "assembly_report_url": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/056/956/725/GCF_056956725.1_ASM5695672v1/GCF_056956725.1_ASM5695672v1_assembly_report.txt",
+      "optix_gene": {
+        "id": "gene-Optix",
+        "name": "Optix",
+        "start0": 1088601,
+        "end0": 1097846,
+        "strand": "+",
+        "description": "optix"
+      },
+      "optix_cds": [
+        {
+          "start0": 1088616,
+          "end0": 1089420,
+          "strand": "+",
+          "protein_id": "XP_085057838.1"
+        }
+      ],
+      "optix_exons": [
+        {
+          "start0": 1088601,
+          "end0": 1097846,
+          "strand": "+"
+        }
+      ],
+      "annotation_note": "NCBI RefSeq annotation RS_2026_06 names this gene Optix (GeneID 146529121). The reference is H. melpomene rosina, not the older H. m. melpomene Hmel2 assembly.",
+      "sequence_record_url": "https://www.ncbi.nlm.nih.gov/nuccore/NC_140406.1",
+      "assembly_url": "https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_056956725.1/",
+      "source_sequence_name": "Hmr18",
+      "source_sequence_role": "assembled-molecule",
+      "source_sequence_length_bp": 16989447
+    }
+  ],
+  "coding_sequence_comparison": {
+    "method": "Compare the two equal-length, transcript-oriented annotated CDS strings position by position, then translate the standard genetic code; no external aligner is used.",
+    "cds_length_bp": 804,
+    "identical_nucleotides": 778,
+    "protein_length_amino_acids": 267,
+    "identical_amino_acids": 266,
+    "amino_acid_differences": [
+      {
+        "position1": 24,
+        "erato": "A",
+        "melpomene": "V"
+      }
+    ]
+  },
+  "citations": [
+    {
+      "title": "NCBI GFF3 coordinate and attribute conventions",
+      "url": "https://www.ncbi.nlm.nih.gov/datasets/docs/v2/reference-docs/file-formats/annotation-files/about-ncbi-gff3/"
+    },
+    {
+      "title": "E-utilities EFetch sequence retrieval",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK25499/#chapter4.EFetch"
+    },
+    {
+      "title": "The 2026 Heliconius assembly project",
+      "url": "https://www.ncbi.nlm.nih.gov/bioproject/1405132"
+    },
+    {
+      "title": "Original comparative-genomics tutorial (conceptual starting point; its sequences and empirical tracks are not used)",
+      "url": "https://stevenvb12.github.io/misc/2023/03/30/Minimap2-alignment.html"
+    },
+    {
+      "title": "H. melpomene rosina Optix gene",
+      "url": "https://www.ncbi.nlm.nih.gov/gene/146529121"
+    }
+  ],
+  "annotation_scope_note": "These GFF files provide gene models, not TE annotations or ATAC-seq measurements. No legacy TE/ATAC tracks are transferred into the current assembly coordinate systems."
+}
