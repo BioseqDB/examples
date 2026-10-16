@@ -1,0 +1,8 @@
+.DS_Store
+**/.venv/
+**/__pycache__/
+**/.ipynb_checkpoints/
+**/.env
+**/output/
+**/downloads/
+**/*.egg-info/

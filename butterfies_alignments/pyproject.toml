@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "bioseqdb-butterfly-tutorial"
+version = "0.1.0"
+description = "An optix-region comparison using BioseqDB, SQLAlchemy and Plotly"
+authors = ["Piotr Styczyński <piotr@styczynski.in>"]
+packages = [{include = "butterfly_tutorial"}]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.14"
+sqlalchemy = "^2.0"
+psycopg = {version = "^3.2", extras = ["binary"]}
+plotly = "^6.3"
+kaleido = "^1.1"
+jupyterlab = "^4.4"
+nbclient = "^0.10"
+
+[tool.poetry.scripts]
+butterfly-tutorial = "butterfly_tutorial.workflow:main"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
