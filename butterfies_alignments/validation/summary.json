@@ -1,0 +1,41 @@
+{
+  "alignment_rows": 661,
+  "reverse_rows": 592,
+  "plotted_rows": 355,
+  "plotted_reverse_rows": 342,
+  "plot_filter": {
+    "minimum_block_length": 300,
+    "minimum_mapq": 20,
+    "minimum_identity_percent": 70
+  },
+  "alignment_seconds_this_run": 0.4093174160225317,
+  "plotted_target_covered_bases": 374441,
+  "plotted_query_covered_bases": 387528,
+  "cigar_validation": {
+    "checked_alignments": 661,
+    "failures": 0
+  },
+  "coding_sequence_comparison": {
+    "cds_length_bp": 804,
+    "identical_nucleotides": 778,
+    "protein_length_amino_acids": 267,
+    "identical_amino_acids": 266,
+    "amino_acid_differences": [
+      {
+        "position1": 24,
+        "erato": "A",
+        "melpomene": "V"
+      }
+    ]
+  },
+  "gc_window_size": 10000,
+  "gc_window_count": 200,
+  "analyzed_at": "2026-10-16T14:20:48.739553+00:00",
+  "source_retrieval_date": "2026-10-16",
+  "versions": {
+    "sqlalchemy": "2.1.4",
+    "psycopg": "3.3.6",
+    "plotly": "6.9.0",
+    "kaleido": "1.5.0"
+  }
+}

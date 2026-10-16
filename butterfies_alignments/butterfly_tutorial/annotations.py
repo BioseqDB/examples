@@ -44,7 +44,51 @@ def _features(record: dict, cache_dir: Path):
                 key: unquote(value)
                 for key, value in (part.split("=", 1) for part in fields[8].split(";") if "=" in part)
             }
-            yield fields[2], start0, end0, fields[6], attributes
+            yield fields[2], start0, end0, fields[6], fields[7], attributes
+
+
+def _checked_optix_features(record: dict, features: list) -> list:
+    """Check the narrow, single-transcript models used in this comparison.
+
+    This tutorial does not implement arbitrary GFF translation exceptions or
+    isoform selection. Reject those cases rather than extracting an unrelated
+    CDS merely because its coordinates were entered in the manifest.
+    """
+    gene = record["optix_gene"]
+    genes = [feature for feature in features
+             if feature[0] == "gene" and feature[5].get("ID") == gene["id"]]
+    if len(genes) != 1 or genes[0][1:4] != (gene["start0"], gene["end0"], gene["strand"]):
+        raise ValueError(f"The pinned optix model disagrees with sources.json for {record['accession']}.")
+    transcripts = [feature for feature in features
+                   if feature[0] in {"mRNA", "transcript"}
+                   and gene["id"] in feature[5].get("Parent", "").split(",")]
+    if len(transcripts) != 1:
+        raise ValueError("This optix comparison requires exactly one annotated transcript per gene.")
+    transcript = transcripts[0]
+    transcript_id = transcript[5]["ID"]
+    if transcript[5].get("Parent") != gene["id"]:
+        raise ValueError("The optix transcript must belong only to the pinned gene.")
+    children = [feature for feature in features
+                if feature[0] in {"exon", "CDS"}
+                and transcript_id in feature[5].get("Parent", "").split(",")]
+    for kind, start0, end0, strand, phase, attrs in genes + transcripts + children:
+        if any(key in attrs for key in ("exception", "transl_except", "start_range", "end_range")) or attrs.get("partial") == "true":
+            raise ValueError("Partial or exceptional optix models need a separate translation workflow.")
+        if not gene["start0"] <= start0 < end0 <= gene["end0"] or strand != gene["strand"]:
+            raise ValueError("An optix feature disagrees with the gene interval or strand.")
+        if kind in {"exon", "CDS"}:
+            if attrs.get("Parent") != transcript_id or not transcript[1] <= start0 < end0 <= transcript[2]:
+                raise ValueError("An optix exon or CDS disagrees with its transcript parent.")
+        if kind == "CDS" and phase != "0":
+            raise ValueError("This optix comparison requires the pinned phase-zero CDS model.")
+    for kind, manifest_key in (("exon", "optix_exons"), ("CDS", "optix_cds")):
+        actual = sorted((start0, end0, strand, attrs.get("protein_id") if kind == "CDS" else None)
+                        for feature_kind, start0, end0, strand, _, attrs in children if feature_kind == kind)
+        expected = sorted((item["start0"], item["end0"], item["strand"], item.get("protein_id") if kind == "CDS" else None)
+                          for item in record[manifest_key])
+        if not actual or actual != expected:
+            raise ValueError(f"The pinned optix {kind} features disagree with sources.json for {record['accession']}.")
+    return children
 
 
 def load_annotations(records: list[dict], cache_dir: Path = Path("output/downloads")) -> list[dict]:
@@ -57,8 +101,10 @@ def load_annotations(records: list[dict], cache_dir: Path = Path("output/downloa
     """
     genes = []
     for record in records:
+        features = list(_features(record, Path(cache_dir)))
+        _checked_optix_features(record, features)
         matched_optix = False
-        for kind, start0, end0, strand, attrs in _features(record, Path(cache_dir)):
+        for kind, start0, end0, strand, _, attrs in features:
             if kind not in {"gene", "pseudogene"}:
                 continue
             is_optix = attrs.get("ID") == record["optix_gene"]["id"]
@@ -91,12 +137,9 @@ def load_optix_exons(records: list[dict], cache_dir: Path = Path("output/downloa
     result = []
     for record in records:
         features = list(_features(record, Path(cache_dir)))
-        transcripts = {
-            attrs["ID"] for kind, _, _, _, attrs in features
-            if kind in {"mRNA", "transcript"} and record["optix_gene"]["id"] in attrs.get("Parent", "").split(",")
-        }
-        for kind, start0, end0, strand, attrs in features:
-            if kind != "exon" or not (transcripts & set(attrs.get("Parent", "").split(","))):
+        children = _checked_optix_features(record, features)
+        for kind, start0, end0, strand, _, attrs in children:
+            if kind != "exon":
                 continue
             result.append({
                 "accession": record["accession"],

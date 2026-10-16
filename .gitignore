@@ -5,4 +5,5 @@
 **/.env
 **/output/
 **/downloads/
+**/.postgres-butterflies/
 **/*.egg-info/

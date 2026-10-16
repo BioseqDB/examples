@@ -1,0 +1,14 @@
+[
+  {
+    "key": "erato",
+    "accession": "JBTWUK020000023.1",
+    "length": 1000000,
+    "first_20_bases": "TCGCGTGAATGCAAATGCGG"
+  },
+  {
+    "key": "melpomene",
+    "accession": "NC_140406.1",
+    "length": 1000000,
+    "first_20_bases": "ATATCAAATACCAATGTTAG"
+  }
+]
