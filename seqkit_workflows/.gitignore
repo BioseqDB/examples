@@ -1,0 +1,6 @@
+*.fa
+*.fasta
+results/
+figures/
+.venv/
+__pycache__/
