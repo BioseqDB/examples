@@ -1,0 +1,102 @@
+{
+  "preflight": {
+    "language": "sql",
+    "stage": "none",
+    "code": "SELECT to_regnamespace('bioseq_external') IS NOT NULL AS external_schema,\n       to_regclass('bioseq_external.sequences') IS NOT NULL AS remote_sequences;\n"
+  },
+  "schema": {
+    "language": "sql",
+    "stage": "none",
+    "code": "CREATE SCHEMA scoring;\nCREATE TABLE scoring.genomes (\n    accession text NOT NULL,\n    role text NOT NULL,\n    seq bioseq.seq('dna5', 64) NOT NULL\n) USING bioseq;\n"
+  },
+  "import-one": {
+    "language": "sql",
+    "stage": "schema",
+    "code": "INSERT INTO scoring.genomes (accession, role, seq)\nSELECT 'NC_012920.1', 'reference', sequence::bioseq.seq('dna5', 64)\nFROM bioseq_external.sequences\nWHERE provider = 'ncbi' AND accession = 'NC_012920.1';\n\nINSERT INTO scoring.genomes (accession, role, seq)\nSELECT 'KF161060.1', 'sample', sequence::bioseq.seq('dna5', 64)\nFROM bioseq_external.sequences\nWHERE provider = 'ncbi' AND accession = 'KF161060.1';\n\nSELECT accession, role, bioseq.len(seq) AS bases\nFROM scoring.genomes ORDER BY role, accession;\n"
+  },
+  "inspect": {
+    "language": "sql",
+    "stage": "genomes",
+    "code": "SELECT role, count(*) AS genomes,\n       min(bioseq.len(seq)) AS shortest,\n       max(bioseq.len(seq)) AS longest,\n       sum(bioseq.len(seq)) AS total_bases,\n       sum(length(seq::text) - length(replace(seq::text, 'N', ''))) AS unknown_n\nFROM scoring.genomes GROUP BY role ORDER BY role;\n\nSELECT accession, bioseq.len(seq) AS bases,\n       length(seq::text) - length(replace(seq::text, 'N', '')) AS unknown_n\nFROM scoring.genomes WHERE role = 'sample'\nORDER BY accession LIMIT 5;\n"
+  },
+  "ambiguity": {
+    "language": "sql",
+    "stage": "genomes",
+    "code": "SELECT count(*) AS sample_genomes,\n       sum(bioseq.len(seq)) AS total_bases,\n       sum(length(seq::text) - length(replace(seq::text, 'N', ''))) AS unknown_n,\n       round(100.0 * sum(length(seq::text) - length(replace(seq::text, 'N', '')))\n             / sum(bioseq.len(seq)), 4) AS percent_unknown\nFROM scoring.genomes WHERE role = 'sample';\n"
+  },
+  "align-one": {
+    "language": "sql",
+    "stage": "genomes",
+    "code": "SELECT q.accession,\n       bioseq.target_start(t.seq)::integer AS target_start,\n       bioseq.target_end(t.seq)::integer AS target_end,\n       bioseq.query_start(t.seq)::integer AS query_start,\n       bioseq.query_end(t.seq)::integer AS query_end,\n       bioseq.is_reverse(t.seq) AS is_reverse,\n       bioseq.cigar(t.seq)::text AS cigar,\n       bioseq.edit(t.seq) AS edits,\n       bioseq.score(t.seq) AS score,\n       bioseq.is_primary(t.seq) AS is_primary\nFROM scoring.genomes t\nJOIN scoring.genomes q ON mmsearch(t.seq, q.seq, aligner_options(\n    kmer_size => 15, window_size => 10,\n    max_gap => 200, min_chain_score => 40))\nWHERE t.role = 'reference' AND q.role = 'sample' AND q.accession = 'KF161060.1';\n"
+  },
+  "aligned-pairs": {
+    "language": "sql",
+    "stage": "columns",
+    "code": "SELECT p.pos::integer AS position1, p.base, count(*) AS samples\nFROM scoring.projected_sequences s\nCROSS JOIN LATERAL regexp_split_to_table(s.aligned, '')\n    WITH ORDINALITY AS p(base, pos)\nGROUP BY p.pos, p.base\nORDER BY p.pos, p.base LIMIT 12;\n\nSELECT base, sum(n) AS aligned_calls,\n       base IN ('A', 'C', 'G', 'T') AS included_in_matrix\nFROM scoring.site_counts\nGROUP BY base ORDER BY base;\n"
+  },
+  "dna-pairs": {
+    "language": "sql",
+    "stage": "columns",
+    "code": "SELECT a.base AS base_from,b.base AS base_to,\n       sum(CASE WHEN a.base=b.base THEN a.n*(a.n-1)\n                ELSE a.n*b.n END)::bigint AS pairs\nFROM scoring.site_counts a JOIN scoring.site_counts b USING(position1)\nJOIN scoring.reference_bases r USING(position1)\nWHERE r.base IN ('A','C','G','T') AND a.base IN ('A','C','G','T') AND b.base IN ('A','C','G','T')\nGROUP BY a.base,b.base\nORDER BY base_from, base_to;\n"
+  },
+  "dna-matrix": {
+    "language": "sql",
+    "stage": "dna",
+    "code": "WITH frequencies AS (\n    SELECT *, pairs::numeric / sum(pairs) OVER () AS q\n    FROM scoring.nucleotide_pairs\n), marginals AS (\n    SELECT base_from AS base, sum(q) AS p\n    FROM frequencies GROUP BY base_from\n)\nSELECT f.base_from, f.base_to, pairs,\n       round(q, 6) AS q,\n       round(a.p * b.p, 6) AS expected,\n       CASE WHEN q > 0 THEN\n           round(2 * log(2::numeric, q / (a.p * b.p)), 2)\n       END AS score_half_bits\nFROM frequencies f\nJOIN marginals a ON a.base = f.base_from\nJOIN marginals b ON b.base = f.base_to\nORDER BY base_from, base_to;\n"
+  },
+  "dna-ratios": {
+    "language": "sql",
+    "stage": "dna",
+    "code": "SELECT reference_base, sample_base, calls,\n       round(100 * fraction_of_calls, 4) AS percent_of_callable_positions,\n       round(100 * fraction_of_differences, 2) AS percent_of_differences\nFROM scoring.reference_spectrum\nWHERE reference_base <> sample_base\nORDER BY reference_base, sample_base;\n"
+  },
+  "protein-pairs": {
+    "language": "sql",
+    "stage": "proteins",
+    "code": "WITH observed AS (\n    SELECT a.aa AS aa_from,b.aa AS aa_to,\n       sum(CASE WHEN a.aa=b.aa THEN a.n*(a.n-1) ELSE a.n*b.n END)::bigint AS pairs\n    FROM scoring.protein_site_counts a JOIN scoring.protein_site_counts b USING(gene,codon1)\n    GROUP BY a.aa,b.aa\n), alphabet AS (SELECT unnest(string_to_array('A R N D C Q E G H I L K M F P S T W Y V',' ')) AS aa)\nSELECT a.aa AS aa_from,b.aa AS aa_to,coalesce(o.pairs,0)::bigint AS pairs\nFROM alphabet a CROSS JOIN alphabet b\nLEFT JOIN observed o ON o.aa_from=a.aa AND o.aa_to=b.aa\nWHERE a.aa = 'L' ORDER BY b.aa;\n"
+  },
+  "protein-matrix": {
+    "language": "sql",
+    "stage": "proteins",
+    "code": "SELECT aa_from, aa_to, pairs,\n       round(score_half_bits, 2) AS score_half_bits,\n       round(100 * fraction_of_differences, 4) AS percent_of_differences\nFROM scoring.protein_matrix\nWHERE aa_from = 'L'\nORDER BY aa_to;\n"
+  },
+  "protein-ratios": {
+    "language": "sql",
+    "stage": "reference",
+    "code": "SELECT p.aa_from, p.aa_to,\n       round(100 * p.fraction_of_differences, 4) AS cohort_percent,\n       round(100 * b.fraction_of_differences, 4) AS blosum62_percent\nFROM scoring.protein_matrix p\nJOIN scoring.reference_protein_matrix b USING (aa_from, aa_to)\nWHERE b.matrix = 'BLOSUM62'\n  AND p.aa_from = 'L' AND p.aa_to <> 'L'\nORDER BY p.aa_to;\n"
+  },
+  "run-cohort": {
+    "language": "sh",
+    "stage": "none",
+    "code": "bash run.sh\n"
+  },
+  "python-plots": {
+    "language": "python",
+    "stage": "none",
+    "code": "from pathlib import Path\nfrom matplotlib.colors import TwoSlopeNorm\nimport numpy as np\nfrom render_charts import DNA, SCORE_MAP, figure, matrix, rows, save\n\nrecords = rows(Path('results/nucleotide_matrix.csv'))\nscores = matrix(records, DNA, 'base_from', 'base_to', 'score_half_bits')\nfig, ax = figure(width=7, height=6)\nedges = np.arange(len(DNA) + 1) - 0.5\nimage = ax.pcolormesh(edges, edges, scores, cmap=SCORE_MAP,\n                      norm=TwoSlopeNorm(vcenter=0), shading='flat')\nax.invert_yaxis()\nax.set_xticks(range(4), DNA)\nax.set_yticks(range(4), DNA)\nax.set_xlabel('Partner nucleotide')\nax.set_ylabel('First nucleotide')\nfig.colorbar(image, ax=ax, label='Log-odds score (half bits)')\nfig.tight_layout()\nsave(fig, Path('nucleotide-matrix.svg'),\n     'Human mitochondrial nucleotide scores',\n     'Log-odds scores from aligned nucleotide pairs in the 1,000-genome cohort.')\n"
+  },
+  "protein-quality": {
+    "language": "sql",
+    "stage": "proteins",
+    "code": "SELECT c.gene, count(*) AS sample_cds,\n       count(*) FILTER (WHERE has_indel) AS indel_cds,\n       count(*) FILTER (WHERE incompletely_aligned) AS incomplete_cds,\n       count(*) FILTER (WHERE q.premature_stop) AS stop_cds,\n       count(*) FILTER (WHERE q.invalid_start) AS invalid_start_cds,\n       count(*) FILTER (WHERE q.ambiguous_start) AS ambiguous_start_cds,\n       count(*) FILTER (WHERE NOT has_indel AND NOT incompletely_aligned\n                       AND NOT q.premature_stop AND NOT q.invalid_start\n                       AND NOT q.ambiguous_start) AS retained_cds\nFROM scoring.cds_quality c\nLEFT JOIN scoring.protein_cds_quality q USING (accession, gene)\nGROUP BY c.gene ORDER BY c.gene;\n\nSELECT count(*) AS eligible_codons,\n       count(*) FILTER (WHERE aa IS NULL) AS ambiguous_codons,\n       count(*) FILTER (WHERE aa IS NOT NULL AND aa <> '*') AS callable_codons,\n       count(*) FILTER (WHERE aa = 'N') AS asparagine_codons\nFROM scoring.amino_acids a\nJOIN scoring.protein_cds_quality q USING (accession, gene)\nWHERE NOT q.premature_stop AND NOT q.invalid_start AND NOT q.ambiguous_start;\n"
+  },
+  "distances": {
+    "language": "sql",
+    "stage": "columns",
+    "code": "WITH chosen AS MATERIALIZED (\n    SELECT p.accession,r.pos::integer AS position1,r.base\n    FROM scoring.projected_sequences p\n    CROSS JOIN LATERAL regexp_split_to_table(p.aligned,'') WITH ORDINALITY r(base,pos)\n    WHERE p.accession IN (SELECT 'KF'||(161060+142*i)||'.1' FROM generate_series(0,7) x(i))\n), counts AS (\n    SELECT a.accession AS sample_from,b.accession AS sample_to,\n           count(*) AS compared_sites,count(*) FILTER(WHERE a.base<>b.base) AS differences\n    FROM chosen a JOIN chosen b USING(position1)\n    JOIN scoring.reference_bases r USING(position1)\n    WHERE a.base IN ('A','C','G','T') AND b.base IN ('A','C','G','T')\n      AND r.base IN ('A','C','G','T')\n    GROUP BY a.accession,b.accession\n)\nSELECT *,round(differences::numeric/compared_sites, 6) AS p_distance FROM counts\nORDER BY sample_from, sample_to;\n"
+  },
+  "toy-logodds": {
+    "language": "sql",
+    "stage": "none",
+    "code": "SELECT round(2 * log(2::numeric, 0.04 / 0.01)) AS half_bit_score;\n\nSELECT sum(score) AS alignment_score\nFROM (VALUES ('A', 'A', 4), ('L', 'I', 2), ('K', 'D', -1))\n     AS aligned(first_residue, second_residue, score);\n"
+  },
+  "toy-column-counts": {
+    "language": "sql",
+    "stage": "none",
+    "code": "WITH residues(letter) AS (\n    VALUES ('A'), ('A'), ('A'), ('A'), ('I'), ('L')\n), counts AS (\n    SELECT letter, count(*) AS n FROM residues GROUP BY letter\n), pairs AS (\n    SELECT a.letter AS first_residue, b.letter AS second_residue,\n           CASE WHEN a.letter = b.letter THEN a.n * (a.n - 1) / 2\n                ELSE a.n * b.n END AS observations\n    FROM counts a JOIN counts b ON a.letter <= b.letter\n)\nSELECT * FROM pairs WHERE observations > 0\nORDER BY first_residue, second_residue;\n"
+  },
+  "dna-partners": {
+    "language": "sql",
+    "stage": "dna",
+    "code": "SELECT base_from, base_to,\n       round(100 * fraction_of_differences, 2) AS percent_of_differences\nFROM scoring.nucleotide_matrix\nWHERE base_from <> base_to\nORDER BY base_from, base_to;\n"
+  }
+}
