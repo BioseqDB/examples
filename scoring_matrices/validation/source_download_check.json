@@ -1,0 +1,9 @@
+{
+  "source_records_checked": 1001,
+  "exact_sequence_matches": 1001,
+  "mismatched_accessions": [],
+  "validation": "BioseqDB EFetch FASTA imports compared against independently downloaded NCBI GenBank XML sequences",
+  "sample_records": 1000,
+  "reference_records": 1,
+  "selected_sample_record_titles": "complete genome"
+}

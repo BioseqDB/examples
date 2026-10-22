@@ -1,0 +1,2 @@
+evaluated_codons,ambiguous_codons,stop_codons,callable_codons,asparagine_codons,polymorphic_codons,excluded_stop_cds,excluded_invalid_start_cds,excluded_ambiguous_start_cds,eligible_codons,ambiguous_eligible_codons,excluded_cds_codons
+3789000,1666,0,3784719,163715,317,0,1,13,3786259,1540,2741

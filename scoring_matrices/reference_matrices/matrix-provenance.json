@@ -1,0 +1,44 @@
+{
+  "retrieved_on": "2026-10-22",
+  "publisher": "National Center for Biotechnology Information (NCBI)",
+  "repository": "https://github.com/ncbi/ncbi-cxx-toolkit-public",
+  "revision": "715f5043f1bdf08392eaef4b8043c5fed0b4d6fd",
+  "alphabet": "ARNDCQEGHILKMFPSTWYV",
+  "joint_convention": "Ordered symmetric joint probabilities: all 400 cells sum to 1; each row sum equals the corresponding background frequency. Unordered off-diagonal pair probability is 2 * joint_probability.",
+  "sources": {
+    "joint_and_background": "https://github.com/ncbi/ncbi-cxx-toolkit-public/blob/715f5043f1bdf08392eaef4b8043c5fed0b4d6fd/src/algo/blast/composition_adjustment/matrix_frequency_data.c",
+    "blosum62_scores": "https://github.com/ncbi/ncbi-cxx-toolkit-public/blob/715f5043f1bdf08392eaef4b8043c5fed0b4d6fd/src/util/tables/sm_blosum62.c",
+    "pam250_scores": "https://github.com/ncbi/ncbi-cxx-toolkit-public/blob/715f5043f1bdf08392eaef4b8043c5fed0b4d6fd/src/util/tables/sm_pam250.c"
+  },
+  "license": "Public-domain United States Government work, per the source headers. Retain the NCBI notice and credit the source authors.",
+  "probability_authors": [
+    "Yi-Kuo Yu",
+    "Alejandro Schaffer",
+    "E. Michael Gertz"
+  ],
+  "score_table_authors": [
+    "Aaron Ucko",
+    "Mike Gertz"
+  ],
+  "scope": "20 standard amino acids only. B, J, Z, X and stop entries omitted. N means asparagine here and must be retained.",
+  "scales": {
+    "BLOSUM62": "half-bit integer scores; divide by 2 for bits",
+    "PAM250": "third-bit integer scores; divide by 3 for bits"
+  },
+  "checks": {
+    "BLOSUM62": {
+      "joint_sum": 0.9999999999999992,
+      "background_sum": 0.9999999999999998,
+      "max_symmetry_error": 0.0,
+      "max_row_marginal_error": 0.0,
+      "score_rounding_mismatches": []
+    },
+    "PAM250": {
+      "joint_sum": 1.0000000000000002,
+      "background_sum": 0.9999999999999999,
+      "max_symmetry_error": 0.0,
+      "max_row_marginal_error": 6.522560269672795e-16,
+      "score_rounding_mismatches": []
+    }
+  }
+}

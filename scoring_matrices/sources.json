@@ -1,0 +1,27 @@
+{
+  "cohort": {
+    "publication": "https://doi.org/10.1038/ejhg.2013.282",
+    "full_text": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4350597/",
+    "study": "Li et al. 2014, 2,000 Danish individuals",
+    "selection": "first 1,000 accession-version records explicitly titled complete genome in study accession range KF161060\u2013KF163059",
+    "first_accession": "KF161060.1",
+    "last_accession": "KF162070.1",
+    "samples": 1000,
+    "selection_is_random": false,
+    "metadata": "samples.csv",
+    "metadata_checked": "2026-10-22",
+    "record_type": "Homo sapiens complete mitochondrial genome",
+    "unique_isolates": 1000,
+    "excluded_partial_records": 11
+  },
+  "reference": {
+    "accession": "NC_012920.1",
+    "url": "https://www.ncbi.nlm.nih.gov/nuccore/NC_012920.1",
+    "bases": 16569,
+    "annotation": "reference_cds.json",
+    "genetic_code": 2,
+    "historical_spacer_position1": 3107
+  },
+  "ncbi_rate_limit": "https://www.ncbi.nlm.nih.gov/books/NBK25497/",
+  "genetic_code": "https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi#SG2"
+}
