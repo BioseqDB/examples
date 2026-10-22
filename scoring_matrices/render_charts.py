@@ -168,7 +168,7 @@ def render(results, references, output):
             "13 mitochondrial coding regions · accepted codons · same bit scale as the reference plots")
     heatmap(matrix(protein, AA, "aa_from", "aa_to", "fraction_of_differences"), AA,
             output / "protein-partners-cohort.svg", "Which amino acids differ in the cohort?",
-            "Partner frequencies among differing pairs · one normalized row per amino acid", ratios=True)
+            "Partner frequencies among differing pairs · defined rows sum to 100%", ratios=True)
     baseline = [r for r in rows(results / "reference_protein_matrix.csv") if r["matrix"] == "BLOSUM62"]
     heatmap(matrix(baseline, AA, "aa_from", "aa_to", "fraction_of_differences"), AA,
             output / "protein-partners-blosum62.svg", "The same comparison in BLOSUM62",
